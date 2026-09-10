@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Comments · hasura.io</title>
+<style>
+:root{--bg:#1e1e1e;--panel:#2c2c2c;--border:#3a3a3a;--text:#e6e6e6;--muted:#9a9a9a;--accent:#7c5cff;--green:#2fbf71;--danger:#ff5c5c}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;overflow:hidden}
+#app{display:grid;grid-template-rows:48px 1fr;grid-template-columns:1fr 320px;height:100vh}
+#app.nosidebar{grid-template-columns:1fr 0}
+#app.nosidebar aside{display:none}
+header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 12px;border-bottom:1px solid var(--border);background:var(--panel)}
+.brand{font-weight:600;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.seg{display:flex;background:#1a1a1a;border:1px solid var(--border);border-radius:8px;padding:2px}
+.seg button{background:none;border:0;color:var(--muted);padding:5px 10px;border-radius:6px;cursor:pointer;font:inherit;display:flex;gap:6px;align-items:center;white-space:nowrap}
+.seg button.on{background:var(--accent);color:#fff}
+kbd{font:10px/1 ui-monospace,monospace;border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:1px 4px;opacity:.8}
+.nav{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
+.nav button{background:none;border:1px solid var(--border);color:var(--text);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:15px;line-height:1}
+.nav .url{flex:1;min-width:0;background:#1a1a1a;border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--muted);font-family:ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.right{display:flex;align-items:center;gap:10px;color:var(--muted);white-space:nowrap}
+label.chk{display:flex;gap:6px;align-items:center;cursor:pointer;user-select:none}
+.avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex:none}
+#stage{position:relative;background:#fff;overflow:hidden}
+#site{width:100%;height:100%;border:0;display:block;background:#fff}
+#stage.commenting::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 2px var(--accent)}
+#hint{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(17,17,17,.9);color:#fff;padding:6px 12px;border-radius:99px;font-size:12px;pointer-events:none;transition:opacity .3s}
+aside{border-left:1px solid var(--border);background:var(--panel);display:flex;flex-direction:column;min-width:0;overflow:hidden}
+aside .head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.tabs{display:flex;gap:2px;padding:8px 10px;border-bottom:1px solid var(--border)}
+.tabs button{flex:1;background:none;border:0;color:var(--muted);padding:6px;border-radius:6px;cursor:pointer;font:inherit}
+.tabs button.on{background:#1a1a1a;color:var(--text)}
+#list{overflow:auto;flex:1;padding:8px}
+.card{border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;cursor:pointer;background:#262626}
+.card:hover{border-color:#555}
+.card.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.card.resolved{opacity:.6}
+.card .row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.seqb{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.card .who{font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .when{color:var(--muted);font-size:11px}
+.card .body{white-space:pre-wrap;word-break:break-word;max-height:60px;overflow:hidden}
+.card .meta{margin-top:6px;display:flex;gap:6px;font-size:11px;color:var(--muted);flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--border);border-radius:99px;padding:1px 7px;font-family:ui-monospace,monospace;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{color:var(--muted);text-align:center;padding:30px 10px;line-height:1.6}
+#popover{position:fixed;width:340px;max-height:70vh;display:none;flex-direction:column;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:10;overflow:hidden}
+#popover.show{display:flex}
+#popover .ph{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border)}
+#popover .ph .t{flex:1;font-weight:600}
+.ib{background:none;border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;cursor:pointer;font:inherit;font-size:12px;white-space:nowrap}
+.ib:hover{border-color:#666}
+.ib.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.ib.ok{border-color:var(--green);color:var(--green)}
+.ib.danger{color:var(--danger)}
+.ib:disabled{opacity:.5;cursor:default}
+#msgs{overflow:auto;padding:10px 12px;flex:1}
+.ctx{color:var(--muted);font-size:11px;margin-bottom:10px;line-height:1.4}
+.msg{display:flex;gap:8px;margin-bottom:12px}
+.msg .b{flex:1;min-width:0}
+.msg .n{font-weight:600;display:flex;gap:6px;align-items:baseline}
+.msg .n span{color:var(--muted);font-weight:400;font-size:11px}
+.msg .x{white-space:pre-wrap;word-break:break-word;margin-top:2px}
+.composer{padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+textarea{width:100%;min-height:64px;resize:vertical;background:#1a1a1a;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px;font:inherit}
+textarea:focus{outline:none;border-color:var(--accent)}
+.actions{display:flex;justify-content:flex-end;gap:6px;align-items:center}
+.actions .hint{margin-right:auto;color:var(--muted);font-size:11px}
+.badge{font-size:10px;border-radius:99px;padding:2px 7px;background:var(--green);color:#fff;vertical-align:middle}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111;border:1px solid var(--border);padding:8px 14px;border-radius:8px;display:none;z-index:20}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand"><span class="dot"></span><span id="brandName">site</span><span style="color:var(--muted);font-weight:400">· comments</span></div>
+    <div class="seg">
+      <button id="mComment" class="on" title="Comment mode: click anywhere on the page to drop a pin">💬 Comment <kbd>C</kbd></button>
+      <button id="mBrowse" title="Browse mode: interact with the page normally">🖱️ Browse <kbd>V</kbd></button>
+    </div>
+    <div class="nav">
+      <button id="back" title="Back">‹</button>
+      <button id="fwd" title="Forward">›</button>
+      <button id="reload" title="Reload">↻</button>
+      <div class="url" id="url">/</div>
+    </div>
+    <div class="right">
+      <label class="chk"><input type="checkbox" id="showResolved"> Show resolved pins</label>
+      <button class="ib" id="toggleSide" title="Toggle sidebar">☰</button>
+      <span id="me"></span>
+    </div>
+  </header>
+  <div id="stage" class="commenting">
+    <iframe id="site" name="__ol_frame" title="site"></iframe>
+    <div id="hint">Click anywhere on the page to leave a comment · <b>V</b> to browse</div>
+  </div>
+  <aside>
+    <div class="head"><b>Comments</b><span id="counts" style="color:var(--muted)"></span></div>
+    <div class="tabs">
+      <button data-f="open" class="on">Open</button>
+      <button data-f="resolved">Resolved</button>
+      <button data-f="all">All</button>
+    </div>
+    <div id="list"></div>
+  </aside>
+</div>
+<div id="popover"></div>
+<div id="toast"></div>
+<script>__INIT_JSON__</script>
+<script>
+// Loop-breaker: if this shell was somehow served INTO our own site frame
+// (fetch-metadata headers stripped upstream), reload the frame as a proxied page.
+if (window.name === '__ol_frame') {
+  const u = new URL(location.href); u.searchParams.set('__frame', '1'); location.replace(u.toString());
+}
+(() => {
+const INIT = window.__INIT__ || {path: '/', site: 'site'};
+const API = '/__overlay/api';
+const $ = s => document.querySelector(s);
+const frame = $('#site'), stage = $('#stage'), pop = $('#popover'), list = $('#list');
+const S = {me: null, threads: [], mode: 'comment', filter: 'open', showResolved: false,
+           active: null, draft: null, path: null, pendingActive: null, pendingAt: 0};
+const pins = new Map();
+let doc = null, win = null, lastListHtml = '';
+
+$('#brandName').textContent = INIT.site;
+document.title = 'Comments · ' + INIT.site;
+frame.title = INIT.site;
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const colors = ['#7c5cff','#5b9dff','#ff7a59','#2fbf71','#e0508c','#f2b134','#20b2aa','#c471ed'];
+const color = id => { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return colors[h % colors.length]; };
+const initials = n => ((n || '?').split(/[\s@._-]+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('')) || '?';
+const ago = t => { const d = Date.now() / 1000 - t; if (d < 60) return 'just now'; if (d < 3600) return Math.floor(d / 60) + 'm ago'; if (d < 86400) return Math.floor(d / 3600) + 'h ago'; return Math.floor(d / 86400) + 'd ago'; };
+const toast = m => { const t = $('#toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', 2500); };
+
+async function api(method, path, body) {
+  const r = await fetch(API + path, {method, headers: {'content-type': 'application/json'}, body: body ? JSON.stringify(body) : undefined});
+  if (!r.ok) { let m = r.statusText; try { m = (await r.json()).detail || m; } catch (e) {} throw new Error(m); }
+  return r.status === 204 ? null : r.json();
+}
+
+async function refresh() {
+  try {
+    const d = await api('GET', '/threads');
+    S.me = d.me; S.threads = d.threads;
+    renderMe(); renderList(); layoutPins(); renderPopover();
+  } catch (e) { console.warn('refresh failed', e); }
+}
+
+function renderMe() {
+  if (!S.me) return;
+  $('#me').innerHTML = `<span class="avatar" style="background:${color(S.me.id)}" title="${esc(S.me.name)}">${esc(initials(S.me.name))}</span>`;
+}
+
+// ---------------------------------------------------------------- iframe ----
+function frameDoc() {
+  try { const d = frame.contentDocument; if (d && d.body && d.readyState !== 'loading') return d; } catch (e) {}
+  return null;
+}
+
+const PIN_CSS = `
+#__ol-pins{position:absolute!important;top:0!important;left:0!important;width:0!important;height:0!important;overflow:visible!important;z-index:2147483000!important;pointer-events:none!important;margin:0!important;padding:0!important;display:block!important}
+.__ol-pin{all:initial;position:absolute;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50% 50% 50% 4px;background:#7c5cff;color:#fff;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);font:700 11px/24px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:center;cursor:pointer!important;pointer-events:auto;box-sizing:border-box;transition:transform .12s;user-select:none;display:block}
+.__ol-pin:hover{transform:translate(-50%,-50%) scale(1.15)}
+.__ol-pin.__ol-active{box-shadow:0 0 0 4px rgba(124,92,255,.45),0 2px 8px rgba(0,0,0,.35);transform:translate(-50%,-50%) scale(1.15)}
+.__ol-pin.__ol-resolved{opacity:.6;background:#5c5c5c!important}
+.__ol-pin.__ol-draft{background:#111!important;border-style:dashed;animation:__ol-pulse 1.2s infinite}
+@keyframes __ol-pulse{0%,100%{box-shadow:0 0 0 0 rgba(124,92,255,.7)}50%{box-shadow:0 0 0 10px rgba(124,92,255,0)}}
+html.__ol-comment-mode, html.__ol-comment-mode *{cursor:crosshair!important}
+`;
+
+function ensureContainer(d) {
+  if (!d.getElementById('__ol-style')) { const st = d.createElement('style'); st.id = '__ol-style'; st.textContent = PIN_CSS; (d.head || d.documentElement).appendChild(st); }
+  if (!d.getElementById('__ol-pins')) { const c = d.createElement('div'); c.id = '__ol-pins'; d.body.appendChild(c); pins.clear(); }
+}
+
+function install(d) {
+  const w = d.defaultView;
+  ensureContainer(d);
+  d.addEventListener('click', onFrameClick, true);
+  d.addEventListener('mousedown', e => {
+    if (S.mode === 'comment' && !(e.target.closest && e.target.closest('#__ol-pins'))) e.preventDefault();
+  }, true);
+  d.addEventListener('keydown', onKey, true);
+  w.addEventListener('scroll', positionPopover, {passive: true});
+  w.addEventListener('resize', () => { layoutPins(); positionPopover(); }, {passive: true});
+  d.documentElement.classList.toggle('__ol-comment-mode', S.mode === 'comment');
+  d.__ol = true;
+  pins.clear();
+  doc = d; win = w;
+}
+
+function tick() {
+  const d = frameDoc();
+  if (!d) return;
+  if (d !== doc || !d.__ol) install(d); else ensureContainer(d);
+  const path = win.location.pathname;
+  if (path !== S.path) { S.path = path; $('#url').textContent = path; S.draft = null; S.active = null; renderList(); renderPopover(); }
+  layoutPins();
+  positionPopover();
+  if (S.pendingActive && Date.now() - S.pendingAt > 700) {
+    const t = S.threads.find(x => x.id === S.pendingActive);
+    if (!t) S.pendingActive = null;
+    else if (t.path === S.path) { const id = S.pendingActive; S.pendingActive = null; select(id, true); }
+  }
+}
+setInterval(tick, 300);
+
+// ---------------------------------------------------------------- anchors ---
+function cssPath(el) {
+  const parts = []; let e = el, depth = 0;
+  while (e && e.nodeType === 1 && e !== doc.body && e !== doc.documentElement) {
+    if (++depth > 40) return null;
+    if (e.id && /^[A-Za-z][\w-]*$/.test(e.id) && !/\d{3,}/.test(e.id) && doc.querySelectorAll('#' + CSS.escape(e.id)).length === 1) {
+      parts.unshift('#' + CSS.escape(e.id));
+      return parts.join('>');
+    }
+    const tag = e.tagName.toLowerCase();
+    let i = 1, s = e;
+    while ((s = s.previousElementSibling)) if (s.tagName === e.tagName) i++;
+    parts.unshift(`${tag}:nth-of-type(${i})`);
+    e = e.parentElement;
+  }
+  if (e !== doc.body) return null;
+  parts.unshift('body');
+  return parts.join('>');
+}
+
+function makeAnchor(e) {
+  let el = e.target && e.target.nodeType === 1 ? e.target : (e.target && e.target.parentElement) || doc.body;
+  const r = el.getBoundingClientRect();
+  let text = '';
+  try { text = (el.innerText || el.getAttribute('alt') || el.getAttribute('aria-label') || el.tagName || '').replace(/\s+/g, ' ').trim().slice(0, 80); } catch (err) {}
+  return {
+    sel: cssPath(el),
+    fx: r.width ? (e.clientX - r.left) / r.width : 0,
+    fy: r.height ? (e.clientY - r.top) / r.height : 0,
+    dx: e.clientX + win.scrollX, dy: e.clientY + win.scrollY,
+    vw: win.innerWidth, text
+  };
+}
+
+function resolveAnchor(a) {
+  let el = null;
+  if (a.sel) { try { el = doc.querySelector(a.sel); } catch (e) {} }
+  if (el) {
+    const r = el.getBoundingClientRect();
+    if (r.width || r.height) return {x: r.left + win.scrollX + a.fx * r.width, y: r.top + win.scrollY + a.fy * r.height, found: true};
+  }
+  return {x: a.dx, y: a.dy, found: false};
+}
+
+// ---------------------------------------------------------------- pins ------
+function visibleThreads() {
+  return S.threads.filter(t => t.path === S.path && (S.showResolved || !t.resolved || t.id === S.active));
+}
+
+function layoutPins() {
+  if (!doc) return;
+  const c = doc.getElementById('__ol-pins'); if (!c) return;
+  const want = new Set();
+  for (const t of visibleThreads()) {
+    want.add(t.id);
+    let p = pins.get(t.id);
+    if (!p) { p = doc.createElement('div'); p.className = '__ol-pin'; p.dataset.olId = t.id; c.appendChild(p); pins.set(t.id, p); }
+    p.textContent = t.resolved ? '✓' : t.seq;
+    p.style.background = color(t.created_by);
+    p.classList.toggle('__ol-resolved', !!t.resolved);
+    p.classList.toggle('__ol-active', t.id === S.active);
+    p.title = `#${t.seq} · ${t.created_by_name || ''}`;
+    const pos = resolveAnchor(t.anchor);
+    p.style.left = pos.x + 'px'; p.style.top = pos.y + 'px';
+  }
+  if (S.draft && S.draft.path === S.path) {
+    want.add('draft');
+    let p = pins.get('draft');
+    if (!p) { p = doc.createElement('div'); p.className = '__ol-pin __ol-draft'; p.textContent = '+'; c.appendChild(p); pins.set('draft', p); }
+    const pos = resolveAnchor(S.draft.anchor);
+    p.style.left = pos.x + 'px'; p.style.top = pos.y + 'px';
+  }
+  for (const [id, p] of pins) if (!want.has(id)) { p.remove(); pins.delete(id); }
+}
+
+function onFrameClick(e) {
+  const pin = e.target && e.target.closest ? e.target.closest('.__ol-pin') : null;
+  if (pin) { e.preventDefault(); e.stopPropagation(); if (pin.dataset.olId) select(pin.dataset.olId, false); return; }
+  if (S.mode !== 'comment') return;
+  e.preventDefault(); e.stopPropagation();
+  if (S.active || S.draft) { close(); return; }
+  S.draft = {path: S.path, anchor: makeAnchor(e)};
+  S.active = null;
+  layoutPins(); renderPopover();
+}
+
+function select(id, scroll) {
+  S.draft = null; S.active = id;
+  layoutPins(); renderList(); renderPopover();
+  if (scroll) { const p = pins.get(id); if (p) p.scrollIntoView({block: 'center', inline: 'center', behavior: 'smooth'}); }
+  positionPopover();
+}
+function close() { S.active = null; S.draft = null; layoutPins(); renderList(); renderPopover(); }
+
+// ---------------------------------------------------------------- popover ---
+function renderPopover() {
+  if (S.draft) {
+    if (pop.dataset.kind !== 'draft') {
+      pop.dataset.kind = 'draft';
+      pop.innerHTML = `<div class="ph"><span class="seqb" style="background:#111">+</span><div class="t">New comment</div><button class="ib" id="pClose">✕</button></div>
+        <div class="composer"><textarea id="pText" placeholder="Leave a comment…"></textarea>
+        <div class="actions"><span class="hint">⌘/Ctrl+Enter to post · Esc to cancel</span><button class="ib" id="pCancel">Cancel</button><button class="ib primary" id="pPost">Post</button></div></div>`;
+      $('#pClose').onclick = $('#pCancel').onclick = close;
+      $('#pPost').onclick = postDraft;
+      const ta = $('#pText');
+      ta.onkeydown = e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') postDraft(); if (e.key === 'Escape') close(); };
+      setTimeout(() => ta.focus(), 0);
+    }
+    pop.classList.add('show'); positionPopover(); return;
+  }
+  const t = S.threads.find(x => x.id === S.active);
+  if (!t) { pop.classList.remove('show'); pop.dataset.kind = ''; return; }
+  const last = t.messages[t.messages.length - 1];
+  const key = 'thread:' + t.id + ':' + JSON.stringify([t.resolved, t.messages.length, last && last.id]);
+  if (pop.dataset.kind !== key) {
+    const preserve = (pop.dataset.kind || '').startsWith('thread:' + t.id) ? (($('#pReply') || {}).value || '') : '';
+    pop.dataset.kind = key;
+    const mine = S.me && t.created_by === S.me.id;
+    pop.innerHTML = `<div class="ph"><span class="seqb" style="background:${color(t.created_by)}">${t.seq}</span>
+      <div class="t">${t.resolved ? '<span class="badge">Resolved</span>' : 'Open thread'}</div>
+      <button class="ib ${t.resolved ? '' : 'ok'}" id="pResolve">${t.resolved ? 'Reopen' : '✓ Resolve'}</button>
+      ${mine ? '<button class="ib danger" id="pDel" title="Delete thread">🗑</button>' : ''}
+      <button class="ib" id="pClose">✕</button></div>
+      <div id="msgs">
+        <div class="ctx">${t.anchor && t.anchor.text ? 'On “' + esc(t.anchor.text.slice(0, 60)) + '” · ' : ''}<span style="font-family:ui-monospace,monospace">${esc(t.path)}</span></div>
+        ${t.messages.map(m => `<div class="msg"><span class="avatar" style="background:${color(m.author_id)}">${esc(initials(m.author_name))}</span><div class="b"><div class="n">${esc(m.author_name)} <span>${ago(m.created_at)}</span></div><div class="x">${esc(m.body)}</div></div></div>`).join('')}
+      </div>
+      <div class="composer"><textarea id="pReply" placeholder="Reply…"></textarea>
+      <div class="actions"><span class="hint">⌘/Ctrl+Enter to send</span><button class="ib primary" id="pSend">Reply</button></div></div>`;
+    $('#pClose').onclick = close;
+    $('#pResolve').onclick = () => setResolved(t.id, !t.resolved);
+    if (mine) $('#pDel').onclick = () => delThread(t.id);
+    $('#pSend').onclick = () => sendReply(t.id);
+    const ta = $('#pReply'); ta.value = preserve;
+    ta.onkeydown = e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') sendReply(t.id); if (e.key === 'Escape') close(); };
+    const ms = $('#msgs'); ms.scrollTop = ms.scrollHeight;
+  }
+  pop.classList.add('show'); positionPopover();
+}
+
+function positionPopover() {
+  if (!pop.classList.contains('show')) return;
+  const id = S.draft ? 'draft' : S.active;
+  const p = pins.get(id);
+  const fr = frame.getBoundingClientRect();
+  const w = pop.offsetWidth || 340, h = pop.offsetHeight || 300;
+  let x, y;
+  if (p) { const r = p.getBoundingClientRect(); x = fr.left + r.right + 12; y = fr.top + r.top - 10; }
+  else { x = fr.left + 24; y = fr.top + 24; }
+  if (x + w > window.innerWidth - 8) {
+    const alt = p ? fr.left + p.getBoundingClientRect().left - w - 12 : window.innerWidth - w - 8;
+    x = alt >= 8 ? alt : window.innerWidth - w - 8;
+  }
+  y = Math.max(fr.top + 8, Math.min(y, window.innerHeight - h - 8));
+  pop.style.left = x + 'px'; pop.style.top = y + 'px';
+}
+
+// ---------------------------------------------------------------- actions ---
+async function postDraft() {
+  const ta = $('#pText'); const body = (ta.value || '').trim();
+  if (!body) { toast('Write something first'); return; }
+  $('#pPost').disabled = true;
+  try {
+    const t = await api('POST', '/threads', {path: S.draft.path, anchor: S.draft.anchor, body});
+    S.draft = null; S.threads.push(t); S.active = t.id;
+    layoutPins(); renderList(); renderPopover();
+    toast(`Comment #${t.seq} added`);
+  } catch (e) { toast(e.message); const b = $('#pPost'); if (b) b.disabled = false; }
+}
+async function sendReply(id) {
+  const ta = $('#pReply'); const body = (ta.value || '').trim();
+  if (!body) return;
+  $('#pSend').disabled = true;
+  try { const t = await api('POST', `/threads/${id}/messages`, {body}); ta.value = ''; replace(t); }
+  catch (e) { toast(e.message); const b = $('#pSend'); if (b) b.disabled = false; }
+}
+async function setResolved(id, v) {
+  try {
+    const t = await api('POST', `/threads/${id}/resolve`, {resolved: v});
+    replace(t); toast(v ? 'Resolved ✓' : 'Reopened');
+    if (v && !S.showResolved) close();
+  } catch (e) { toast(e.message); }
+}
+async function delThread(id) {
+  if (!confirm('Delete this comment thread?')) return;
+  try { await api('DELETE', `/threads/${id}`); S.threads = S.threads.filter(t => t.id !== id); close(); toast('Deleted'); }
+  catch (e) { toast(e.message); }
+}
+function replace(t) {
+  const i = S.threads.findIndex(x => x.id === t.id);
+  if (i >= 0) S.threads[i] = t; else S.threads.push(t);
+  layoutPins(); renderList(); renderPopover();
+}
+
+// ---------------------------------------------------------------- sidebar ---
+function renderList() {
+  const f = S.filter;
+  const items = S.threads.filter(t => f === 'all' || (f === 'open' ? !t.resolved : t.resolved)).sort((a, b) => b.created_at - a.created_at);
+  const open = S.threads.filter(t => !t.resolved).length;
+  $('#counts').textContent = `${open} open · ${S.threads.length - open} resolved`;
+  let html;
+  if (!items.length) html = `<div class="empty">${f === 'open' ? 'No open comments.<br>Click anywhere on the page to drop a pin.' : 'Nothing here yet.'}</div>`;
+  else html = items.map(t => {
+    const m = t.messages[0] || {}; const replies = t.messages.length - 1;
+    return `<div class="card ${t.resolved ? 'resolved' : ''} ${t.id === S.active ? 'on' : ''}" data-id="${t.id}">
+      <div class="row"><span class="seqb" style="background:${color(t.created_by)}">${t.resolved ? '✓' : t.seq}</span><span class="who">${esc(t.created_by_name)}</span><span class="when">${ago(t.created_at)}</span></div>
+      <div class="body">${esc(m.body || '')}</div>
+      <div class="meta">${replies > 0 ? `<span>${replies} ${replies === 1 ? 'reply' : 'replies'}</span>` : ''}${t.path !== S.path ? `<span class="chip" title="${esc(t.path)}">${esc(t.path)}</span>` : ''}</div></div>`;
+  }).join('');
+  if (html === lastListHtml) return;
+  lastListHtml = html; list.innerHTML = html;
+  list.querySelectorAll('.card').forEach(c => c.onclick = () => goTo(c.dataset.id));
+}
+function goTo(id) {
+  const t = S.threads.find(x => x.id === id); if (!t) return;
+  if (t.path === S.path) { select(id, true); return; }
+  S.pendingActive = id; S.pendingAt = Date.now(); S.active = null; S.draft = null; renderPopover();
+  try { frame.contentWindow.location.href = t.path; } catch (e) { frame.src = t.path; }
+}
+
+// ---------------------------------------------------------------- modes -----
+function setMode(m) {
+  S.mode = m;
+  $('#mComment').classList.toggle('on', m === 'comment');
+  $('#mBrowse').classList.toggle('on', m === 'browse');
+  stage.classList.toggle('commenting', m === 'comment');
+  $('#hint').textContent = m === 'comment' ? 'Click anywhere on the page to leave a comment · V to browse' : 'Browse mode — the page is interactive · C to comment';
+  if (doc) doc.documentElement.classList.toggle('__ol-comment-mode', m === 'comment');
+  if (m === 'browse' && S.draft) { S.draft = null; layoutPins(); renderPopover(); }
+  showHint();
+}
+let hintT;
+function showHint() { const h = $('#hint'); h.style.opacity = 1; clearTimeout(hintT); hintT = setTimeout(() => h.style.opacity = 0, 3500); }
+function onKey(e) {
+  const tag = ((e.target && e.target.tagName) || '').toLowerCase();
+  if (tag === 'textarea' || tag === 'input' || tag === 'select' || (e.target && e.target.isContentEditable)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'c' || e.key === 'C') setMode('comment');
+  else if (e.key === 'v' || e.key === 'V') setMode('browse');
+  else if (e.key === 'Escape') close();
+}
+document.addEventListener('keydown', onKey);
+$('#mComment').onclick = () => setMode('comment');
+$('#mBrowse').onclick = () => setMode('browse');
+$('#back').onclick = () => { try { frame.contentWindow.history.back(); } catch (e) {} };
+$('#fwd').onclick = () => { try { frame.contentWindow.history.forward(); } catch (e) {} };
+$('#reload').onclick = () => { try { frame.contentWindow.location.reload(); } catch (e) { frame.src = frame.src; } };
+$('#toggleSide').onclick = () => { $('#app').classList.toggle('nosidebar'); positionPopover(); };
+$('#showResolved').onchange = e => { S.showResolved = e.target.checked; layoutPins(); };
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  S.filter = b.dataset.f; renderList();
+});
+window.addEventListener('resize', positionPopover);
+document.addEventListener('click', e => { if (!pop.contains(e.target) && !e.target.closest('.card') && !e.target.closest('#__ol-pins')) { /* clicks on chrome don't close */ } });
+
+// Load the inner frame under a distinct URL (?__frame=1) so it can never collide
+// with the shell's own URL in the browser cache.
+(() => { const u = new URL(INIT.path || '/', location.origin); u.searchParams.set('__frame', '1'); frame.src = u.pathname + u.search; })();
+refresh();
+setInterval(refresh, 4000);
+showHint();
+})();
+</script>
+</body>
+</html>
