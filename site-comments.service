@@ -1,0 +1,16 @@
+[Unit]
+Description=Figma-style comments overlay for hasura.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=promptql
+WorkingDirectory=/workspace/site-comments
+Environment=PORT=8080
+Environment=UPSTREAM_ORIGIN=https://hasura.io
+ExecStart=/workspace/site-comments/.venv/bin/python /workspace/site-comments/app.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
